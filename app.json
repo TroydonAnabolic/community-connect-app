@@ -2,24 +2,29 @@
   "expo": {
     "name": "community-connect-app",
     "slug": "community-connect-app",
+    "owner": "replace-with-your-expo-owner",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "communityconnectapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.communityconnect.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "Community Connect uses your calendar to save local events you choose to attend.",
+        "NSUserNotificationsUsageDescription": "Community Connect sends reminders for wellbeing check-ins and important community updates."
+      }
     },
     "android": {
+      "package": "com.communityconnect.app",
+      "permissions": ["POST_NOTIFICATIONS", "READ_CALENDAR", "WRITE_CALENDAR"],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      }
     },
     "web": {
       "output": "static",
@@ -27,6 +32,14 @@
     },
     "plugins": [
       "expo-router",
+      "expo-notifications",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Community Connect uses calendar access to add events you RSVP to.",
+          "remindersPermission": "Community Connect uses reminders for wellbeing and event follow-ups."
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -38,8 +51,32 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          // "icon": "./local/assets/notification_icon.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "sounds": [
+            "./local/assets/notification_sound.wav",
+            "./local/assets/notification_sound_other.wav"
+          ],
+          "enableBackgroundRemoteNotifications": false
+        }
       ]
     ],
+    "extra": {
+      "eas": {
+        "projectId": "replace-with-your-eas-project-id"
+      },
+      "firebaseApiKey": "",
+      "firebaseAuthDomain": "",
+      "firebaseProjectId": "",
+      "firebaseStorageBucket": "",
+      "firebaseMessagingSenderId": "",
+      "firebaseAppId": ""
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
