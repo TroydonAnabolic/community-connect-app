@@ -2,7 +2,6 @@
   "expo": {
     "name": "community-connect-app",
     "slug": "community-connect-app",
-    "owner": "replace-with-your-expo-owner",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -18,7 +17,13 @@
     },
     "android": {
       "package": "com.communityconnect.app",
-      "permissions": ["POST_NOTIFICATIONS", "READ_CALENDAR", "WRITE_CALENDAR"],
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -55,7 +60,6 @@
       [
         "expo-notifications",
         {
-          // "icon": "./local/assets/notification_icon.png",
           "color": "#ffffff",
           "defaultChannel": "default",
           "sounds": [
@@ -68,14 +72,15 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "replace-with-your-eas-project-id"
+        "projectId": "42206f26-12ef-48ab-aa01-3fa3366b5ba1"
       },
       "firebaseApiKey": "",
       "firebaseAuthDomain": "",
       "firebaseProjectId": "",
       "firebaseStorageBucket": "",
       "firebaseMessagingSenderId": "",
-      "firebaseAppId": ""
+      "firebaseAppId": "",
+      "router": {}
     },
     "experiments": {
       "typedRoutes": true,
