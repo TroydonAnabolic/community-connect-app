@@ -122,7 +122,8 @@ Update `app.json` placeholder values before building:
 Example deploy commands:
 
 ```bash
-firebase use <your-project-id>
+firebase use community-connect-27653
+
 firebase deploy --only firestore:rules
 ```
 

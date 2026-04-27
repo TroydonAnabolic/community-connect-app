@@ -1,13 +1,13 @@
 import { Redirect } from "expo-router";
 import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Switch,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Switch,
+  TextInput,
+  View,
 } from "react-native";
 
 import { AppScreen } from "@/components/app/app-screen";
@@ -52,9 +52,9 @@ export default function AuthScreen() {
   const { colors } = useAppTheme();
 
   const [isSignUp, setIsSignUp] = useState(true);
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("Troydon");
+  const [email, setEmail] = useState("troyincarnate@gmail.com");
+  const [password, setPassword] = useState("Password123!");
   const [role, setRole] = useState<Exclude<UserRole, "admin">>("senior");
   const [fontScale, setFontScale] =
     useState<(typeof textScaleOptions)[number]["value"]>(1.2);

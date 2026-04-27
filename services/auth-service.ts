@@ -1,15 +1,16 @@
 import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
+  createUserWithEmailAndPassword,
+  deleteUser,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
 } from "firebase/auth";
 import {
-    doc,
-    onSnapshot,
-    serverTimestamp,
-    setDoc,
-    updateDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 import { auth, db } from "@/lib/firebase";
@@ -40,18 +41,28 @@ export async function signUpWithEmail(payload: SignUpPayload): Promise<void> {
     payload.password,
   );
 
-  await updateProfile(credential.user, { displayName });
+  try {
+    await updateProfile(credential.user, { displayName });
 
-  await setDoc(userDoc(credential.user.uid), {
-    uid: credential.user.uid,
-    email,
-    displayName,
-    role: payload.role,
-    accessibility: payload.accessibility,
-    pushToken: null,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+    await setDoc(userDoc(credential.user.uid), {
+      uid: credential.user.uid,
+      email,
+      displayName,
+      role: payload.role,
+      accessibility: payload.accessibility,
+      pushToken: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    try {
+      await deleteUser(credential.user);
+    } catch (cleanupError) {
+      console.warn("Failed to clean up partially-created user:", cleanupError);
+    }
+
+    throw error;
+  }
 }
 
 export async function signInWithEmail(
