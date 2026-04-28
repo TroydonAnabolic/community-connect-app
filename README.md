@@ -122,9 +122,7 @@ Update `app.json` placeholder values before building:
 Example deploy commands:
 
 ```bash
-firebase use community-connect-27653
-
-firebase deploy --only firestore:rules
+npm run deploy:firestore
 ```
 
 ### 5. Run the app

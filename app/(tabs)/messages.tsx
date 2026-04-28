@@ -9,9 +9,9 @@ import { AppRadii, AppSpacing } from "@/constants/app-theme";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAuth } from "@/providers/auth-provider";
 import {
-    createOrOpenConversation,
-    subscribeConversationsForUser,
-    subscribeDirectoryUsers,
+  createOrOpenConversation,
+  subscribeConversationsForUser,
+  subscribeDirectoryUsers,
 } from "@/services/messaging-service";
 import { Conversation, UserProfile } from "@/types/models";
 import { formatDateTime } from "@/utils/time";
@@ -24,6 +24,7 @@ export default function MessagesScreen() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [directoryUsers, setDirectoryUsers] = useState<UserProfile[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [openingMemberUid, setOpeningMemberUid] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) {
@@ -33,13 +34,15 @@ export default function MessagesScreen() {
     const unsubscribeConversations = subscribeConversationsForUser(
       profile.uid,
       setConversations,
-      (caughtError) => setStatusMessage(caughtError.message),
+      (caughtError) =>
+        setStatusMessage(`Conversations error: ${caughtError.message}`),
     );
 
     const unsubscribeDirectory = subscribeDirectoryUsers(
       profile.uid,
       setDirectoryUsers,
-      (caughtError) => setStatusMessage(caughtError.message),
+      (caughtError) =>
+        setStatusMessage(`Directory error: ${caughtError.message}`),
     );
 
     return () => {
@@ -66,14 +69,20 @@ export default function MessagesScreen() {
   }
 
   const openConversation = (conversationId: string) => {
-    router.push({
-      pathname: "/chat/[conversationId]",
-      params: { conversationId },
-    });
+    alert(`Opening conversation: ${conversationId}`);
+    try {
+      router.push(`/chat/${conversationId}`);
+    } catch (e) {
+      // fallback: try window.location for web
+      if (typeof window !== "undefined") {
+        window.location.href = `/chat/${conversationId}`;
+      }
+    }
   };
 
   const handleStartConversation = async (target: UserProfile) => {
     setStatusMessage(null);
+    setOpeningMemberUid(target.uid);
 
     try {
       const conversationId = await createOrOpenConversation(profile, target);
@@ -84,6 +93,8 @@ export default function MessagesScreen() {
           ? error.message
           : "Unable to start conversation.",
       );
+    } finally {
+      setOpeningMemberUid(null);
     }
   };
 
@@ -117,8 +128,18 @@ export default function MessagesScreen() {
         {conversations.map((conversation) => (
           <Pressable
             key={conversation.id}
-            onPress={() => openConversation(conversation.id)}
-            style={[styles.rowCard, { borderColor: colors.border }]}
+            onPress={() => {
+              alert(`Pressed conversation row: ${conversation.id}`);
+              openConversation(conversation.id);
+            }}
+            style={({ pressed }) => [
+              styles.rowCard,
+              {
+                borderColor: colors.border,
+                opacity: pressed ? 0.75 : 1,
+                backgroundColor: pressed ? "#e0e0e0" : "#fffbe6",
+              },
+            ]}
             accessibilityRole="button"
           >
             <AppText variant="label">{getPeerName(conversation)}</AppText>
@@ -144,10 +165,29 @@ export default function MessagesScreen() {
           Reach out privately to trusted members in your community.
         </AppText>
 
+        {suggestedMembers.length === 0 ? (
+          <AppText tone="muted" style={styles.emptyText}>
+            No members available to message right now.
+          </AppText>
+        ) : null}
+
         {suggestedMembers.map((member) => (
-          <View
+          <Pressable
             key={member.uid}
-            style={[styles.memberRow, { borderColor: colors.border }]}
+            onPress={() => {
+              alert(`Pressed member row: ${member.uid}`);
+              handleStartConversation(member);
+            }}
+            style={({ pressed }) => [
+              styles.memberRow,
+              {
+                borderColor: colors.border,
+                opacity: pressed || openingMemberUid === member.uid ? 0.75 : 1,
+                backgroundColor: pressed ? "#e0e0e0" : "#fffbe6",
+              },
+            ]}
+            accessibilityRole="button"
+            disabled={openingMemberUid === member.uid}
           >
             <View style={styles.memberInfo}>
               <AppText variant="label">{member.displayName}</AppText>
@@ -155,16 +195,14 @@ export default function MessagesScreen() {
                 {member.role}
               </AppText>
             </View>
-            <Pressable
-              onPress={() => handleStartConversation(member)}
+            <View
               style={[styles.messageButton, { backgroundColor: colors.accent }]}
-              accessibilityRole="button"
             >
               <AppText variant="button" style={styles.messageButtonText}>
-                Message
+                {openingMemberUid === member.uid ? "Opening..." : "Message"}
               </AppText>
-            </Pressable>
-          </View>
+            </View>
+          </Pressable>
         ))}
       </SectionCard>
     </AppScreen>
