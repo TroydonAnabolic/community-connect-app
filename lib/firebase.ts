@@ -1,4 +1,4 @@
-import { createAsyncStorage } from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   browserLocalPersistence,
@@ -34,9 +34,8 @@ function createAuth() {
   }
 
   try {
-    const appStorage = createAsyncStorage("app");
     return initializeAuth(firebaseApp, {
-      persistence: getReactNativePersistence(appStorage),
+      persistence: getReactNativePersistence(AsyncStorage),
     });
   } catch (error) {
     if (
@@ -44,12 +43,12 @@ function createAuth() {
       error.message.includes("initializeAuth() has already been called")
     ) {
       const existingAuth = getAuth(firebaseApp);
-      const appStorage = createAsyncStorage("app");
-      setPersistence(existingAuth, getReactNativePersistence(appStorage)).catch(
-        () => {
-          return;
-        },
-      );
+      setPersistence(
+        existingAuth,
+        getReactNativePersistence(AsyncStorage),
+      ).catch(() => {
+        return;
+      });
       return existingAuth;
     }
 
