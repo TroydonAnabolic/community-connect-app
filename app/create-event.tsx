@@ -1,6 +1,9 @@
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { AppScreen } from "@/components/app/app-screen";
 import { AppText } from "@/components/app/app-text";
@@ -29,11 +32,13 @@ export default function CreateEventScreen() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [dateText, setDateText] = useState(toDateText(defaultStart));
-  const [timeText, setTimeText] = useState(toTimeText(defaultStart));
+  const [selectedDate, setSelectedDate] = useState(defaultStart);
+  const [selectedTime, setSelectedTime] = useState(defaultStart);
   const [durationMinutes, setDurationMinutes] = useState("60");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   if (!user) {
     return <Redirect href="/auth" />;
@@ -43,6 +48,29 @@ export default function CreateEventScreen() {
     return null;
   }
 
+  const dateText = toDateText(selectedDate);
+  const timeText = toTimeText(selectedTime);
+
+  const handleDateChange = (event: DateTimePickerEvent, value?: Date) => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
+
+    if (value) {
+      setSelectedDate(value);
+    }
+  };
+
+  const handleTimeChange = (event: DateTimePickerEvent, value?: Date) => {
+    if (Platform.OS === "android") {
+      setShowTimePicker(false);
+    }
+
+    if (value) {
+      setSelectedTime(value);
+    }
+  };
+
   const handleCreate = async () => {
     setError(null);
 
@@ -51,10 +79,11 @@ export default function CreateEventScreen() {
       return;
     }
 
-    const startsAt = new Date(`${dateText}T${timeText}:00`);
+    const startsAt = new Date(selectedDate);
+    startsAt.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
 
     if (Number.isNaN(startsAt.getTime())) {
-      setError("Date or time format is invalid. Use YYYY-MM-DD and HH:MM.");
+      setError("Date or time selection is invalid.");
       return;
     }
 
@@ -148,40 +177,62 @@ export default function CreateEventScreen() {
             <AppText variant="caption" tone="muted" style={styles.inputLabel}>
               Date (YYYY-MM-DD)
             </AppText>
-            <TextInput
-              placeholder="2026-04-22"
-              placeholderTextColor={colors.textMuted}
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
               style={[
                 styles.input,
+                styles.pickerField,
                 {
                   borderColor: colors.border,
-                  color: colors.textPrimary,
                   backgroundColor: colors.surface,
                 },
               ]}
-              value={dateText}
-              onChangeText={setDateText}
-            />
+            >
+              <AppText
+                style={[styles.pickerValue, { color: colors.textPrimary }]}
+              >
+                {dateText}
+              </AppText>
+            </Pressable>
+            {showDatePicker ? (
+              <DateTimePicker
+                mode="date"
+                value={selectedDate}
+                display={Platform.OS === "ios" ? "inline" : "default"}
+                onChange={handleDateChange}
+              />
+            ) : null}
           </View>
 
           <View style={styles.halfWidth}>
             <AppText variant="caption" tone="muted" style={styles.inputLabel}>
               Start time (HH:MM)
             </AppText>
-            <TextInput
-              placeholder="14:30"
-              placeholderTextColor={colors.textMuted}
+            <Pressable
+              onPress={() => setShowTimePicker(true)}
               style={[
                 styles.input,
+                styles.pickerField,
                 {
                   borderColor: colors.border,
-                  color: colors.textPrimary,
                   backgroundColor: colors.surface,
                 },
               ]}
-              value={timeText}
-              onChangeText={setTimeText}
-            />
+            >
+              <AppText
+                style={[styles.pickerValue, { color: colors.textPrimary }]}
+              >
+                {timeText}
+              </AppText>
+            </Pressable>
+            {showTimePicker ? (
+              <DateTimePicker
+                mode="time"
+                value={selectedTime}
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={handleTimeChange}
+              />
+            ) : null}
           </View>
         </View>
 
@@ -248,6 +299,12 @@ const styles = StyleSheet.create({
   },
   halfWidth: {
     flex: 1,
+  },
+  pickerField: {
+    justifyContent: "center",
+  },
+  pickerValue: {
+    fontSize: 16,
   },
   inputLabel: {
     marginBottom: AppSpacing.xs,
