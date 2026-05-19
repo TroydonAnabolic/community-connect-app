@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Switch, View } from "react-native";
+import { Pressable, StyleSheet, Switch, TextInput, View } from "react-native";
 
 import { AppScreen } from "@/components/app/app-screen";
 import { AppText } from "@/components/app/app-text";
@@ -15,14 +15,22 @@ const fontScaleChoices = [
 ] as const;
 
 export default function ProfileScreen() {
-  const { profile, signOutUser, updateAccessibility, refreshPushToken } =
-    useAuth();
+  const {
+    profile,
+    signOutUser,
+    updateAccessibility,
+    updateAccountDetails,
+    refreshPushToken,
+  } = useAuth();
   const { colors } = useAppTheme();
 
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [fontScale, setFontScale] =
     useState<(typeof fontScaleChoices)[number]["value"]>(1.2);
   const [highContrast, setHighContrast] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingAccount, setSavingAccount] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,6 +38,8 @@ export default function ProfileScreen() {
       return;
     }
 
+    setDisplayName(profile.displayName);
+    setEmail(profile.email);
     setFontScale(
       (profile.accessibility
         .fontScale as (typeof fontScaleChoices)[number]["value"]) ?? 1,
@@ -66,6 +76,45 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleSaveAccount = async () => {
+    const nextName = displayName.trim();
+    const nextEmail = email.trim().toLowerCase();
+
+    if (!nextName) {
+      setStatusMessage("Display name cannot be empty.");
+      return;
+    }
+
+    if (!nextEmail) {
+      setStatusMessage("Email cannot be empty.");
+      return;
+    }
+
+    if (
+      nextName === profile.displayName &&
+      nextEmail === profile.email.toLowerCase()
+    ) {
+      setStatusMessage("Account details are already up to date.");
+      return;
+    }
+
+    setStatusMessage(null);
+    setSavingAccount(true);
+
+    try {
+      await updateAccountDetails(nextName, nextEmail);
+      setStatusMessage("Account details updated.");
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to update account details.",
+      );
+    } finally {
+      setSavingAccount(false);
+    }
+  };
+
   const handlePushRefresh = async () => {
     setStatusMessage(null);
 
@@ -88,8 +137,55 @@ export default function ProfileScreen() {
     >
       <SectionCard>
         <AppText variant="heading">Account details</AppText>
-        <AppText style={styles.detailText}>{profile.displayName}</AppText>
-        <AppText tone="muted">{profile.email}</AppText>
+        <TextInput
+          accessibilityLabel="Display name"
+          autoCapitalize="words"
+          placeholder="Display name"
+          placeholderTextColor={colors.textMuted}
+          style={[
+            styles.input,
+            {
+              borderColor: colors.border,
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+            },
+          ]}
+          value={displayName}
+          onChangeText={setDisplayName}
+        />
+        <TextInput
+          accessibilityLabel="Email"
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          placeholder="Email"
+          placeholderTextColor={colors.textMuted}
+          style={[
+            styles.input,
+            {
+              borderColor: colors.border,
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+            },
+          ]}
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Pressable
+          onPress={handleSaveAccount}
+          disabled={savingAccount}
+          style={[
+            styles.secondaryButton,
+            {
+              borderColor: colors.border,
+              opacity: savingAccount ? 0.7 : 1,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="accent">
+            {savingAccount ? "Saving..." : "Save account details"}
+          </AppText>
+        </Pressable>
         <AppText variant="caption" tone="muted" style={styles.roleBadge}>
           Role: {profile.role}
         </AppText>
@@ -192,8 +288,12 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  detailText: {
+  input: {
     marginTop: AppSpacing.sm,
+    borderWidth: 1,
+    borderRadius: AppRadii.sm,
+    paddingHorizontal: AppSpacing.md,
+    paddingVertical: AppSpacing.sm,
   },
   roleBadge: {
     marginTop: AppSpacing.xs,

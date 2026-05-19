@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 import { AppScreen } from "@/components/app/app-screen";
 import { AppText } from "@/components/app/app-text";
@@ -114,7 +115,11 @@ export default function EventsScreen() {
 
     try {
       await addEventToCalendar(event);
-      setStatusMessage("Event added to your device calendar.");
+      Toast.show({
+        type: "success",
+        text1: "Added to calendar",
+        position: "bottom",
+      });
     } catch (error) {
       setStatusMessage(
         error instanceof Error ? error.message : "Unable to add to calendar.",
@@ -216,6 +221,7 @@ export default function EventsScreen() {
           </SectionCard>
         );
       })}
+
     </AppScreen>
   );
 }

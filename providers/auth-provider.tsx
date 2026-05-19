@@ -17,6 +17,7 @@ import {
   signUpWithEmail,
   subscribeUserProfile,
   updateAccessibilityPreferences,
+  updateUserAccountDetails,
   updateUserPushToken,
 } from "@/services/auth-service";
 import { registerForPushNotificationsAsync } from "@/services/notifications-service";
@@ -30,6 +31,7 @@ type AuthContextValue = {
   signUp: (payload: SignUpPayload) => Promise<void>;
   signOutUser: () => Promise<void>;
   updateAccessibility: (accessibility: AccessibilitySettings) => Promise<void>;
+  updateAccountDetails: (displayName: string, email: string) => Promise<void>;
   refreshPushToken: () => Promise<void>;
 };
 
@@ -181,6 +183,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [user],
   );
 
+  const updateAccountDetails = useCallback(
+    async (displayName: string, email: string) => {
+      if (!user) {
+        return;
+      }
+
+      await updateUserAccountDetails(user.uid, displayName, email);
+    },
+    [user],
+  );
+
   const refreshPushToken = useCallback(async () => {
     if (!user) {
       return;
@@ -204,11 +217,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signUp,
       signOutUser,
       updateAccessibility,
+      updateAccountDetails,
       refreshPushToken,
     }),
     [
       loading,
       profile,
+      updateAccountDetails,
       refreshPushToken,
       signIn,
       signOutUser,

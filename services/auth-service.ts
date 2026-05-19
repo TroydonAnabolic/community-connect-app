@@ -3,6 +3,7 @@ import {
   deleteUser,
   signInWithEmailAndPassword,
   signOut,
+  updateEmail,
   updateProfile,
 } from "firebase/auth";
 import {
@@ -124,6 +125,56 @@ export async function updateUserPushToken(
 ): Promise<void> {
   await updateDoc(userDoc(uid), {
     pushToken,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function updateUserDisplayName(
+  uid: string,
+  displayName: string,
+): Promise<void> {
+  const nextName = displayName.trim();
+
+  if (!nextName) {
+    throw new Error("Display name cannot be empty.");
+  }
+
+  if (auth.currentUser) {
+    await updateProfile(auth.currentUser, { displayName: nextName });
+  }
+
+  await updateDoc(userDoc(uid), {
+    displayName: nextName,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function updateUserAccountDetails(
+  uid: string,
+  displayName: string,
+  email: string,
+): Promise<void> {
+  const nextName = displayName.trim();
+  const nextEmail = email.trim().toLowerCase();
+
+  if (!nextName) {
+    throw new Error("Display name cannot be empty.");
+  }
+
+  if (!nextEmail) {
+    throw new Error("Email cannot be empty.");
+  }
+
+  if (auth.currentUser) {
+    await updateProfile(auth.currentUser, { displayName: nextName });
+    if (auth.currentUser.email !== nextEmail) {
+      await updateEmail(auth.currentUser, nextEmail);
+    }
+  }
+
+  await updateDoc(userDoc(uid), {
+    displayName: nextName,
+    email: nextEmail,
     updatedAt: serverTimestamp(),
   });
 }

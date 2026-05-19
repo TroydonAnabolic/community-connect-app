@@ -1,22 +1,23 @@
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    TextInput,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/app/app-text";
 import { AppRadii, AppSpacing } from "@/constants/app-theme";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAuth } from "@/providers/auth-provider";
 import {
-    sendDirectMessage,
-    subscribeMessages,
+  sendDirectMessage,
+  subscribeMessages,
 } from "@/services/messaging-service";
 import { DirectMessage } from "@/types/models";
 import { formatDateTime } from "@/utils/time";
@@ -116,41 +117,46 @@ export default function ChatDetailScreen() {
         }}
       />
 
-      <View
-        style={[
-          styles.composerRow,
-          { borderTopColor: colors.border, backgroundColor: colors.surface },
-        ]}
+      <SafeAreaView
+        edges={["bottom"]}
+        style={{ backgroundColor: colors.surface }}
       >
-        <TextInput
-          accessibilityLabel="Message text"
-          placeholder="Write a message..."
-          placeholderTextColor={colors.textMuted}
+        <View
           style={[
-            styles.input,
-            {
-              borderColor: colors.border,
-              color: colors.textPrimary,
-              backgroundColor: colors.background,
-            },
-          ]}
-          value={draft}
-          onChangeText={setDraft}
-          multiline
-        />
-        <Pressable
-          onPress={handleSend}
-          disabled={sending}
-          style={[
-            styles.sendButton,
-            { backgroundColor: colors.accent, opacity: sending ? 0.7 : 1 },
+            styles.composerRow,
+            { borderTopColor: colors.border, backgroundColor: colors.surface },
           ]}
         >
-          <AppText variant="button" style={styles.sendButtonText}>
-            Send
-          </AppText>
-        </Pressable>
-      </View>
+          <TextInput
+            accessibilityLabel="Message text"
+            placeholder="Write a message..."
+            placeholderTextColor={colors.textMuted}
+            style={[
+              styles.input,
+              {
+                borderColor: colors.border,
+                color: colors.textPrimary,
+                backgroundColor: colors.background,
+              },
+            ]}
+            value={draft}
+            onChangeText={setDraft}
+            multiline
+          />
+          <Pressable
+            onPress={handleSend}
+            disabled={sending}
+            style={[
+              styles.sendButton,
+              { backgroundColor: colors.accent, opacity: sending ? 0.7 : 1 },
+            ]}
+          >
+            <AppText variant="button" style={styles.sendButtonText}>
+              Send
+            </AppText>
+          </Pressable>
+        </View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
